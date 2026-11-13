@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.env
+.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+ENCODER_repo/
+ENCODER_repo_new/
+CIRThan/
+trainingcode/
+*.ipynb
+open_clip_pytorch_model.bin
+results/*.pt
