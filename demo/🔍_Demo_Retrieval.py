@@ -1,7 +1,7 @@
 """
 CIR Thangka Demo — Streamlit app
 Jalankan:
-  conda run -n LLMproject streamlit run demo/app.py
+  streamlit run demo/🔍_Demo_Retrieval.py
 """
 
 import os, sys, json, random
@@ -10,11 +10,12 @@ import torch
 import streamlit as st
 import pandas as pd
 from PIL import Image
+from inference import DATASET_DIR as DATA_PATH, load_model as load_inference_model, retrieve
 
 ROOT        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEMO_DIR    = os.path.dirname(os.path.abspath(__file__))
 ENCODER_DIR = os.path.join(ROOT, 'ENCODER_repo_new')
-DATASET_DIR = os.path.join(ROOT, 'CIRThan')
+DATASET_DIR = str(DATA_PATH)
 CHECKPOINT  = os.path.join(ROOT, 'results', 'enhanced_best 123.pt')
 CACHE_DIR   = os.path.join(DEMO_DIR, 'gallery_cache')
 
@@ -56,59 +57,7 @@ def load_test_samples():
 # ── Load model ───────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
-    import open_clip
-
-    model_code = '''import torch
-import torch.nn as nn
-from model_try2 import Encoder
-
-class CIRThanEncoder(Encoder):
-    def __init__(self, hidden_dim=512, dropout=0.0, local_token_num=1,
-                 t=0.1, wc=2, N_p=1, weighted=True):
-        super().__init__(hidden_dim, dropout, local_token_num, t, wc, N_p, weighted)
-        self.sketch_proj = nn.Sequential(
-            nn.LayerNorm(hidden_dim), nn.Linear(hidden_dim, hidden_dim),
-            nn.GELU(), nn.Linear(hidden_dim, hidden_dim),
-        )
-        self.thangka_proj = nn.Sequential(
-            nn.LayerNorm(hidden_dim), nn.Linear(hidden_dim, hidden_dim),
-            nn.GELU(), nn.Linear(hidden_dim, hidden_dim),
-        )
-    def target_fea(self, tag):
-        t = self.backbone.extract_img_fea(tag)
-        return t + self.thangka_proj(t)
-'''
-    enh_path = os.path.join(ENCODER_DIR, 'model_enhanced.py')
-    with open(enh_path, 'w') as f:
-        f.write(model_code)
-
-    import model_enhanced as enh
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = enh.CIRThanEncoder(
-        hidden_dim=512, dropout=0.5, local_token_num=1,
-        t=0.1, wc=2, N_p=1, weighted=True
-    ).to(device)
-    state = torch.load(CHECKPOINT, map_location=device)
-    model.load_state_dict(state, strict=False)
-    model.eval()
-
-    _, _, preprocess = open_clip.create_model_and_transforms(
-        'ViT-B-32',
-        pretrained=os.path.join(ROOT, 'ENCODER_repo', 'open_clip_pytorch_model.bin')
-    )
-    return model, preprocess, device
-
-
-# ── Retrieval ────────────────────────────────────────────────────────────────
-def retrieve(sketch_img: Image.Image, text: str, top_k: int,
-             model, preprocess, device, gallery_embs, gallery_ids):
-    sketch_t = preprocess(sketch_img).unsqueeze(0).float().to(device)
-    with torch.no_grad():
-        query_emb = model.extract_retrieval_compose(sketch_t, [text])
-    query_emb = query_emb.cpu().numpy()
-    sims = (query_emb @ gallery_embs.T).squeeze(0)
-    top_idx = np.argsort(sims)[::-1][:top_k]
-    return [(gallery_ids[i], float(sims[i])) for i in top_idx]
+    return load_inference_model()
 
 
 # ── Session state defaults ───────────────────────────────────────────────────
@@ -125,8 +74,12 @@ for key, default in [
 st.title("🖼️ Composed Image Retrieval — Thangka Demo")
 st.caption("Model: ENCODER + CDP + LAT + HNM (seed 123) · Galeri: 419 gambar Thangka")
 
-gallery_ids, gallery_embs, id_to_path = load_gallery_meta()
-test_samples = load_test_samples()
+try:
+    gallery_ids, gallery_embs, id_to_path = load_gallery_meta()
+    test_samples = load_test_samples()
+except FileNotFoundError:
+    st.error("Aset demo belum tersedia. Jalankan python scripts/setup_demo.py dan ikuti langkah dataset di README.")
+    st.stop()
 
 with st.sidebar:
     st.header("Input Kueri")
@@ -160,6 +113,7 @@ with st.sidebar:
         st.session_state.levels       = None
 
     # ── Level selector (hanya muncul kalau dari Coba Contoh) ───────────────
+    level_choice = 1
     if st.session_state.levels:
         st.markdown("**Level deskripsi teks**")
         level_choice = st.radio(
@@ -179,6 +133,8 @@ with st.sidebar:
         if st.session_state.get("text_input") != selected_text:
             st.session_state["text_input"] = selected_text
             st.rerun()
+    else:
+        level_choice = st.selectbox("Level deskripsi", [1, 2, 3], format_func=lambda x: f"L{x}")
 
     text_query = st.text_area(
         "Deskripsi teks",
@@ -217,7 +173,7 @@ if run_btn:
             model, preprocess, device = load_model()
             results = retrieve(
                 st.session_state.sketch_img, active_text, top_k,
-                model, preprocess, device, gallery_embs, gallery_ids
+                model, preprocess, device, gallery_embs, gallery_ids, level=level_choice
             )
 
         gt = st.session_state.gt_id

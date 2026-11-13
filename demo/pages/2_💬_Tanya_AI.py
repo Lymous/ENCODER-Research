@@ -58,7 +58,11 @@ PRESET_QUESTIONS = [
 # ── Inisialisasi Gemini ───────────────────────────────────────────────────────
 def get_gemini_response(user_message: str, history: list) -> str:
     import time
-    api_key = st.secrets.get("GEMINI_API_KEY", "")
+    try:
+        api_key = st.secrets.get("GEMINI_API_KEY", "")
+        model_name = st.secrets.get("GEMINI_MODEL", "gemini-2.5-flash")
+    except FileNotFoundError:
+        return "API key belum diisi. Silakan isi GEMINI_API_KEY di file `.streamlit/secrets.toml`."
     if not api_key or api_key == "ISI_API_KEY_DISINI":
         return "API key belum diisi. Silakan isi GEMINI_API_KEY di file `.streamlit/secrets.toml`."
     client = genai.Client(api_key=api_key)
@@ -70,7 +74,7 @@ def get_gemini_response(user_message: str, history: list) -> str:
     for attempt in range(3):
         try:
             response = client.models.generate_content(
-                model="gemini-3.6-flash",
+                model=model_name,
                 contents=contents,
                 config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
             )
@@ -87,7 +91,7 @@ def get_gemini_response(user_message: str, history: list) -> str:
 
 # ── UI ────────────────────────────────────────────────────────────────────────
 st.title("💬 Tanya AI tentang Penelitian Ini")
-st.caption("Didukung oleh Gemini 1.5 Flash · Tanyakan apa saja tentang CIR, Thangka, atau model yang digunakan")
+st.caption("Didukung oleh Gemini · Tanyakan apa saja tentang CIR, Thangka, atau model yang digunakan")
 
 # Session state untuk chat history
 if "chat_history" not in st.session_state:
