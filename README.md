@@ -2,56 +2,56 @@
 
 **Enhanced ENCODER for Composed Thangka Image Retrieval via Domain Adaptation and Hierarchical Text Alignment**
 
-Molion Syahputra Mulya dan Cendra Putra, Universitas Negeri Surabaya (UNESA).
+Molion Syahputra Mulya and Cendra Putra, Universitas Negeri Surabaya (UNESA).
 
-Artikel penelitian: [DOI: 10.67561/jaids.v2i1.4](https://doi.org/10.67561/jaids.v2i1.4)
+Research article: [DOI: 10.67561/jaids.v2i1.4](https://doi.org/10.67561/jaids.v2i1.4)
 
-![Ilustrasi penelitian](picture/1.jpeg)
+![Research illustration](picture/1.jpeg)
 
-## Tentang penelitian
+## About the Research
 
-Penelitian ini membahas Composed Image Retrieval (CIR) untuk gambar Thangka: pengguna memberikan sketsa dan deskripsi teks, kemudian sistem mencari gambar yang paling relevan. Evaluasi menggunakan benchmark CIRThan dengan tiga tingkat deskripsi: L1 (ringkas), L2 (sedang), dan L3 (detail).
+This research studies Composed Image Retrieval (CIR) for Thangka imagery. Users provide a sketch and a text description, and the system retrieves relevant images. Evaluation uses CIRThan with three description levels: L1 (concise), L2 (intermediate), and L3 (detailed).
 
-Penelitian mengembangkan ENCODER dengan empat komponen:
+The research extends ENCODER with four components:
 
-- **Cross-Domain Projection (CDP):** adapter residual untuk menjembatani perbedaan representasi sketsa dan gambar Thangka.
-- **Level-Aware Tags (LAT):** penanda tingkat deskripsi untuk membantu model membedakan informasi teks L1, L2, dan L3.
-- **Hard Negative Mining (HNM):** pembelajaran dari pasangan negatif yang sulit dibedakan.
-- **UCDR Domain Prompts:** prompt visual yang dapat dilatih untuk adaptasi domain pada backbone CLIP.
+- **Cross-Domain Projection (CDP):** residual adapters that bridge the representation gap between sketches and Thangka images.
+- **Level-Aware Tags (LAT):** markers that distinguish L1, L2, and L3 descriptions.
+- **Hard Negative Mining (HNM):** learning from negative pairs that are difficult to distinguish.
+- **UCDR Domain Prompts:** trainable visual prompts for domain adaptation within the CLIP backbone.
 
-## Model yang digunakan demo
+## Demo Model
 
-Demo menggunakan checkpoint **ENCODER + CDP + LAT + HNM, seed 123**, dengan hasil terbaik satu seed **Avg R@1 = 58,95%**. Checkpoint ini berbeda dari varian penuh yang juga menggunakan UCDR. Hasil varian penuh yang dilaporkan dalam penelitian adalah Avg R@1 55,61%; baseline re-run adalah 52,91%.
+The demo uses **ENCODER + CDP + LAT + HNM, seed 123**, with a best single-seed result of **58.95% Avg R@1**. This differs from the full variant, which also includes UCDR. The reported full-model result is 55.61% Avg R@1; the re-run baseline achieves 52.91%.
 
-| Tingkat deskripsi | R@1 (%) | R@3 (%) | R@5 (%) |
+| Description level | R@1 (%) | R@3 (%) | R@5 (%) |
 | --- | ---: | ---: | ---: |
-| L1 | 56,80 | 78,76 | 84,01 |
-| L2 | 58,95 | 79,24 | 85,68 |
-| L3 | 61,10 | 80,91 | 86,16 |
-| Rata-rata | **58,95** | **79,64** | **85,28** |
+| L1 | 56.80 | 78.76 | 84.01 |
+| L2 | 58.95 | 79.24 | 85.68 |
+| L3 | 61.10 | 80.91 | 86.16 |
+| Average | **58.95** | **79.64** | **85.28** |
 
-R@K adalah persentase kueri yang gambar targetnya ditemukan dalam K hasil teratas. Angka di atas berasal dari catatan hasil penelitian lokal, bukan evaluasi ulang pada saat pengemasan repositori.
+R@K is the percentage of queries whose target image appears among the top K results. These figures come from research records, not a new evaluation performed while packaging this repository.
 
-## Isi repositori
+## Repository Contents
 
-- `demo/`: aplikasi Streamlit dengan halaman retrieval, informasi penelitian, dan Tanya AI.
-- `demo/gallery_cache/`: embedding dan ID untuk 419 gambar galeri demo.
-- [Checkpoint demo (GitHub Release)](https://github.com/Lymous/ENCODER-Research/releases/tag/demo-seed123): unduh `enhanced_best.123.pt`, kemudian simpan sebagai `results/enhanced_best 123.pt`.
-- `picture/1.jpeg`: gambar yang ditampilkan pada README.
+- `demo/`: Streamlit application with Retrieval, About, and Ask AI pages.
+- `demo/gallery_cache/`: embeddings and IDs for 419 demo gallery images.
+- [Demo checkpoint (GitHub Release)](https://github.com/Lymous/ENCODER-Research/releases/tag/demo-seed123): download `enhanced_best.123.pt` and save it as `results/enhanced_best 123.pt`.
+- `picture/1.jpeg`: the illustration displayed in this README.
 
-Notebook, loss kustom, optimizer, dan loop training penelitian tidak disertakan. `demo/inference.py` hanya memuat arsitektur adapter dan inferensi untuk menggunakan checkpoint. Kode dasar ENCODER diunduh dari repo penulis melalui `scripts/setup_demo.py`, bukan diunggah ulang. Checkpoint merupakan bobot model, bukan program yang dapat dijalankan sendiri.
+Research notebooks, custom training losses, optimizers, and training loops are not included. `demo/inference.py` contains the adapter architecture and inference logic needed to use the checkpoint. Setup downloads the base ENCODER implementation from its authors' repository rather than redistributing it here.
 
-Checkpoint berukuran sekitar 606 MiB dan didistribusikan melalui GitHub Release, terpisah dari riwayat Git. Buat folder `results/` bila belum ada setelah clone.
+The checkpoint is approximately 606 MiB and is distributed through GitHub Releases, separately from Git history. Create `results/` if needed when downloading manually.
 
-SHA-256 checkpoint:
+Checkpoint SHA-256:
 
 ```text
 a57b84ad54abcfc5923f1e42cfa36303843a30a72572e49f5f033ffe5c923878
 ```
 
-## Menjalankan demo
+## Running the Demo
 
-Gunakan **Python 3.11** dalam environment baru agar instalasi tidak mengubah environment penelitian yang sudah ada. CPU didukung; GPU NVIDIA dengan CUDA dapat mempercepat inferensi. Perintah berikut untuk Linux/WSL:
+Use **Python 3.11** in a new environment to avoid changing an existing research environment. CPU inference is supported; an NVIDIA GPU with CUDA can accelerate inference. For Linux/WSL:
 
 ```bash
 git clone https://github.com/Lymous/ENCODER-Research.git
@@ -64,48 +64,48 @@ python -m pip install -r requirements.txt
 python scripts/setup_demo.py
 ```
 
-Untuk instalasi PyTorch CPU-only, ganti `cu118` dengan `cpu` pada URL perintah PyTorch. Di Windows gunakan `py -3.11 -m venv .venv` dan `.venv\Scripts\activate`.
+For CPU-only PyTorch, replace `cu118` with `cpu` in the installation URL. On Windows, use `py -3.11 -m venv .venv` and `.venv\Scripts\activate`.
 
-Setup mengunduh dua modul dasar ENCODER, metadata CIRThan, weight CLIP, dan checkpoint dari Release. Total unduhan bobot sekitar 1,24 GB, belum termasuk dataset. File besar diverifikasi SHA-256. Setup dapat dijalankan ulang dan melewati file yang sudah valid.
+Setup downloads two base ENCODER modules, CIRThan metadata, CLIP weights, and the release checkpoint. Weight downloads total approximately 1.24 GB, excluding the dataset. Large files are SHA-256 verified. Setup can be rerun and skips valid files.
 
-**Gambar dan sketsa perlu diunduh dari Google Drive resmi CIRThan pada tabel di bawah**, lalu ekstrak sehingga `CIRThan/image/` dan `CIRThan/sketch/` berada langsung di root dataset. Kedua folder media tidak diunggah ulang di repo ini. Setelah itu:
+**Download images and sketches from the official CIRThan Google Drive link below**, then extract them into `CIRThan/image/` and `CIRThan/sketch/`. These media folders are not redistributed here. Then run:
 
 ```bash
 python scripts/check_demo.py --inference
 python -m streamlit run 'demo/🔍_Demo_Retrieval.py'
 ```
 
-Buka URL lokal yang dicetak Streamlit. Pilih contoh test set, tingkat deskripsi, lalu klik Cari. `check_demo.py` memeriksa seluruh gambar galeri dan sketsa test, serta menjalankan satu kueri nyata dengan `--inference`. Gunakan `--device cpu` untuk memaksa tes CPU.
+Open the local URL printed by Streamlit. Select a test example and description level, then click Search. The checker validates all gallery images and test sketches and runs a real query with `--inference`. Use `--device cpu` to force CPU testing.
 
-Jika dataset sudah tersedia di tempat lain, atur `CIRTHAN_DIR` ke folder tersebut sebelum menjalankan pemeriksaan dan Streamlit. Contoh Linux: `export CIRTHAN_DIR=/path/ke/CIRThan`. Untuk memakai bobot yang sudah tersedia di proyek lokal, jalankan `python scripts/setup_demo.py --assets-from /path/ke/proyek`. Setup menyalin bobot yang sesuai checksum dan tidak mengubah proyek sumber.
+For an existing dataset, set `CIRTHAN_DIR` before running the checker and Streamlit, for example `export CIRTHAN_DIR=/path/to/CIRThan`. To reuse existing local weights, run `python scripts/setup_demo.py --assets-from /path/to/project`. Setup copies weights with matching checksums without modifying the source project.
 
-### Sumber unduhan
+### Download Sources
 
-| Komponen | Sumber resmi / unduhan | Lokasi yang diharapkan demo |
+| Component | Official source / download | Expected location |
 | --- | --- | --- |
-| Implementasi ENCODER | [Repo resmi AAAI25-ENCODER](https://github.com/iLearn-Lab/AAAI25-ENCODER) (tautan lama `Lee-zixu/ENCODER` dialihkan ke sini). Gunakan tombol **Code > Download ZIP** atau clone repo. | `ENCODER_repo_new/`, termasuk `model_try2.py` dan `token_wise_matching.py` |
-| Weight CLIP ViT-B-32, LAION-2B | [Model resmi LAION](https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K) / [unduh open_clip_pytorch_model.bin](https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/resolve/main/open_clip_pytorch_model.bin?download=true) | `ENCODER_repo/open_clip_pytorch_model.bin` |
-| Metadata CIRThan | [Repo resmi CIRThan](https://github.com/jinyuxu-whut/CIRThan), termasuk folder `captions/` dan `image_splits/` | `CIRThan/captions/` dan `CIRThan/image_splits/` |
-| Gambar dan sketsa CIRThan | [Google Drive yang ditautkan oleh penulis dataset](https://drive.google.com/drive/folders/1M7_l2DiWpwqhlvGpP5EuVEY0eM7-nC3a?usp=sharing) | Ekstrak menjadi `CIRThan/image/` dan `CIRThan/sketch/` sesuai metadata |
+| ENCODER implementation | [Official AAAI25-ENCODER repository](https://github.com/iLearn-Lab/AAAI25-ENCODER); the former `Lee-zixu/ENCODER` URL redirects here. Setup downloads the required modules automatically. | `ENCODER_repo_new/`, including `model_try2.py` and `token_wise_matching.py` |
+| CLIP ViT-B-32, LAION-2B weights | [Official LAION model](https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K) / [download open_clip_pytorch_model.bin](https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/resolve/main/open_clip_pytorch_model.bin?download=true) | `ENCODER_repo/open_clip_pytorch_model.bin` |
+| CIRThan metadata | [Official CIRThan repository](https://github.com/jinyuxu-whut/CIRThan), including `captions/` and `image_splits/` | `CIRThan/captions/` and `CIRThan/image_splits/` |
+| CIRThan images and sketches | [Google Drive linked by the dataset authors](https://drive.google.com/drive/folders/1M7_l2DiWpwqhlvGpP5EuVEY0eM7-nC3a?usp=sharing) | Extract into `CIRThan/image/` and `CIRThan/sketch/` to match the metadata |
 
-Setup menggunakan commit ENCODER `29a2a31d6a56f677bf450c3be7cdaef423fb7018` dan metadata CIRThan `b1499eb9393b12f1499a983f8fedfe7d14869024`. Dua modul ENCODER diverifikasi checksum sebelum penyesuaian lokal untuk path weight absolut dan pemilihan device CPU/CUDA. Kode yang diunduh diabaikan oleh Git. Checkpoint CIRThan seed 123 tetap diambil dari [Release penelitian ini](https://github.com/Lymous/ENCODER-Research/releases/tag/demo-seed123).
+Setup pins ENCODER to commit `29a2a31d6a56f677bf450c3be7cdaef423fb7018` and CIRThan metadata to `b1499eb9393b12f1499a983f8fedfe7d14869024`. Both ENCODER modules are checksum-verified before local adjustments for absolute weight paths and CPU/CUDA device selection. Downloaded code is ignored by Git. The seed 123 checkpoint comes from [this research release](https://github.com/Lymous/ENCODER-Research/releases/tag/demo-seed123).
 
-### Batas reproduksi hasil
+### Reproducibility Limits
 
-Inferensi demo menerapkan adapter sketsa dan tag `[L1]`/`[L2]`/`[L3]`. Checkpoint yang tersedia tidak menyimpan tensor `backbone.binding_decoder.learnable_relation`, akibat cara konstruktor upstream memindahkan tensor ke CUDA. Demo menginisialisasi tensor tersebut secara deterministik dengan seed 123 dan menolak ketidakcocokan bobot lain. Karena itu, keberhasilan demo bukan jaminan reproduksi angka evaluasi 58,95%; angka tersebut adalah hasil penelitian yang dilaporkan. Cache galeri menggunakan embedding yang sudah disediakan, bukan dihitung ulang saat startup.
+Demo inference applies the sketch adapter and `[L1]`/`[L2]`/`[L3]` tags. The checkpoint does not contain `backbone.binding_decoder.learnable_relation`, because of how the upstream constructor moved that tensor to CUDA. The demo initializes it deterministically with seed 123 and rejects other weight mismatches. Successful demo execution does not guarantee reproduction of the reported 58.95% evaluation result. Gallery embeddings are loaded from the supplied cache rather than recomputed at startup.
 
-Verifikasi lokal: setup mengunduh kode acuan dan metadata, checksum bobot lolos, seluruh 419 gambar galeri dan 419 sketsa test tersedia, satu kueri CPU menghasilkan target di rank 1, dan tes antarmuka retrieval (CUDA), Tentang, serta Tanya AI tanpa key lulus. Pengujian menggunakan environment Python penelitian yang sudah tersedia; instalasi environment baru dan respons API Gemini belum diuji. Media dataset dan bobot yang sudah ada digunakan ulang saat pengujian.
+Local verification: setup downloaded upstream code and metadata; weight checksums passed; all 419 gallery images and 419 test sketches were available; one CPU query returned its target at rank 1; and interface tests passed for retrieval (CUDA), About, and Ask AI without an API key. Tests used the existing research Python environment. A fresh environment installation and live Gemini responses have not been tested. Existing dataset media and weights were reused during testing.
 
-### Sumber instalasi environment
+### Environment Installation Sources
 
-Environment dipasang melalui package manager, bukan diunduh sebagai bagian dataset. Gunakan [petunjuk instalasi dan requirements dari ENCODER](https://github.com/iLearn-Lab/AAAI25-ENCODER) sebagai acuan model, serta sumber resmi berikut untuk komponen demo:
+Install the environment through a package manager. Refer to the [ENCODER installation instructions and requirements](https://github.com/iLearn-Lab/AAAI25-ENCODER) for the base model and these official sources for demo components:
 
-- [PyTorch dan pilihan CUDA](https://pytorch.org/get-started/locally/).
-- [Instalasi Streamlit](https://docs.streamlit.io/get-started/installation).
-- [Google Gen AI Python SDK](https://github.com/googleapis/python-genai), paket `google-genai`, untuk halaman Tanya AI.
+- [PyTorch and CUDA options](https://pytorch.org/get-started/locally/).
+- [Streamlit installation](https://docs.streamlit.io/get-started/installation).
+- [Google Gen AI Python SDK](https://github.com/googleapis/python-genai), package `google-genai`, for Ask AI.
 
-Versi dependensi demo dicatat dalam `requirements.txt`. Untuk halaman Tanya AI, salin `.streamlit/secrets.toml.example` menjadi `.streamlit/secrets.toml` dan isi key sendiri. Jalankan Streamlit dari root repo. Retrieval tidak membutuhkan API key; Tanya AI membutuhkan internet, API key, dan model Gemini yang tersedia pada akun pengguna.
+Demo dependency versions are listed in `requirements.txt`. For Ask AI, copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` and provide your own key. Run Streamlit from the repository root. Retrieval does not require an API key; Ask AI requires internet access, an API key, and a Gemini model available to your account.
 
-## Atribusi
+## Attribution
 
-Penelitian dikembangkan di atas ENCODER dan menggunakan CLIP serta benchmark CIRThan. Kepemilikan kode, model dasar, dan dataset pihak ketiga tetap mengikuti sumber serta lisensinya masing-masing. Lihat artikel pada tautan DOI untuk konteks metode, evaluasi, dan referensi penelitian.
+This research builds on ENCODER and uses CLIP and CIRThan. Third-party code, base models, and datasets remain subject to their original ownership and licenses. See the article linked by DOI for the methodology, evaluation, and research references.

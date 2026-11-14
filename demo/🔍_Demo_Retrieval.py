@@ -1,6 +1,6 @@
 """
 CIR Thangka Demo — Streamlit app
-Jalankan:
+Run:
   streamlit run demo/🔍_Demo_Retrieval.py
 """
 
@@ -72,20 +72,20 @@ for key, default in [
 
 # ── UI ────────────────────────────────────────────────────────────────────────
 st.title("🖼️ Composed Image Retrieval — Thangka Demo")
-st.caption("Model: ENCODER + CDP + LAT + HNM (seed 123) · Galeri: 419 gambar Thangka")
+st.caption("Model: ENCODER + CDP + LAT + HNM (seed 123) · Gallery: 419 Thangka images")
 
 try:
     gallery_ids, gallery_embs, id_to_path = load_gallery_meta()
     test_samples = load_test_samples()
 except FileNotFoundError:
-    st.error("Aset demo belum tersedia. Jalankan python scripts/setup_demo.py dan ikuti langkah dataset di README.")
+    st.error("Demo assets are missing. Run python scripts/setup_demo.py and follow the dataset steps in README.")
     st.stop()
 
 with st.sidebar:
-    st.header("Input Kueri")
+    st.header("Query Input")
 
-    # ── Tombol Coba Contoh ──────────────────────────────────────────────────
-    if st.button("🎲 Coba Contoh dari Test Set", use_container_width=True):
+    # ── Test example button ──────────────────────────────────────────────────
+    if st.button("🎲 Try a Test Example", use_container_width=True):
         sample = random.choice(test_samples)
         sketch_num  = sample['sketch_id'].replace('sketch', '')
         sketch_path = os.path.join(DATASET_DIR, 'sketch', f"{sketch_num}.png")
@@ -100,76 +100,76 @@ with st.sidebar:
             }
             st.session_state["text_input"] = sample['level1']
         else:
-            st.warning(f"File sketsa tidak ditemukan: {sketch_path}")
+            st.warning(f"Sketch file not found: {sketch_path}")
 
     st.divider()
 
-    # ── Upload manual ───────────────────────────────────────────────────────
-    sketch_file = st.file_uploader("Atau upload sketsa sendiri", type=["png", "jpg", "jpeg"])
+    # ── Manual upload ───────────────────────────────────────────────────────
+    sketch_file = st.file_uploader("Or upload your own sketch", type=["png", "jpg", "jpeg"])
     if sketch_file:
         st.session_state.sketch_img   = Image.open(sketch_file).convert('RGB')
         st.session_state.gt_id        = None
         st.session_state.sketch_label = sketch_file.name
         st.session_state.levels       = None
 
-    # ── Level selector (hanya muncul kalau dari Coba Contoh) ───────────────
+    # ── Level selector for test examples ───────────────
     level_choice = 1
     if st.session_state.levels:
-        st.markdown("**Level deskripsi teks**")
+        st.markdown("**Text description level**")
         level_choice = st.radio(
             "Level",
             options=[1, 2, 3],
             format_func=lambda x: {
-                1: "L1 — Ringkas",
-                2: "L2 — Sedang",
-                3: "L3 — Detail",
+                1: "L1 — Concise",
+                2: "L2 — Intermediate",
+                3: "L3 — Detailed",
             }[x],
             horizontal=True,
             key="level_radio",
             label_visibility="collapsed",
         )
         selected_text = st.session_state.levels[level_choice]
-        # Sync ke text_input setiap kali level berubah
+        # Sync text_input when the description level changes
         if st.session_state.get("text_input") != selected_text:
             st.session_state["text_input"] = selected_text
             st.rerun()
     else:
-        level_choice = st.selectbox("Level deskripsi", [1, 2, 3], format_func=lambda x: f"L{x}")
+        level_choice = st.selectbox("Description level", [1, 2, 3], format_func=lambda x: f"L{x}")
 
     text_query = st.text_area(
-        "Deskripsi teks",
-        placeholder="Contoh: a thangka with a central Buddha figure surrounded by lotus flowers",
+        "Text description",
+        placeholder="Example: a thangka with a central Buddha figure surrounded by lotus flowers",
         key="text_input",
     )
-    top_k   = st.slider("Tampilkan Top-K", min_value=1, max_value=20, value=5)
-    run_btn = st.button("🔍 Cari", use_container_width=True, type="primary")
+    top_k   = st.slider("Number of results (Top-K)", min_value=1, max_value=20, value=5)
+    run_btn = st.button("🔍 Search", use_container_width=True, type="primary")
 
     st.divider()
-    st.subheader("Sketsa")
+    st.subheader("Sketch")
     if st.session_state.sketch_img:
         st.image(st.session_state.sketch_img, use_container_width=True,
                  caption=st.session_state.sketch_label)
         if st.session_state.gt_id:
             st.caption(f"Ground truth: `{st.session_state.gt_id}`")
     else:
-        st.info("Belum ada sketsa")
+        st.info("No sketch selected")
 
 # ── Main area ─────────────────────────────────────────────────────────────────
 st.markdown(
-    "**Cara pakai:** Klik **🎲 Coba Contoh** untuk memuat sketsa + deskripsi teks secara otomatis, "
-    "atau upload sketsa sendiri lalu tulis deskripsi teks, kemudian klik **🔍 Cari**. "
-    "Model menggabungkan informasi dari **sketsa** dan **teks** sekaligus untuk menemukan gambar Thangka yang paling relevan."
+    "**Query:** "
+    ""
+    "A **sketch** and **text description** represent the target Thangka image."
 )
 st.divider()
 
 if run_btn:
     active_text = text_query.strip()
     if st.session_state.sketch_img is None:
-        st.warning("Muat sketsa terlebih dahulu — klik Coba Contoh atau upload file.")
+        st.warning("Select a test example or upload a sketch first.")
     elif not active_text:
-        st.warning("Isi deskripsi teks terlebih dahulu.")
+        st.warning("Enter a text description first.")
     else:
-        with st.spinner("Menghitung retrieval..."):
+        with st.spinner("Retrieving images..."):
             model, preprocess, device = load_model()
             results = retrieve(
                 st.session_state.sketch_img, active_text, top_k,
@@ -177,20 +177,20 @@ if run_btn:
             )
 
         gt = st.session_state.gt_id
-        st.subheader(f"Top-{top_k} Hasil Retrieval")
+        st.subheader(f"Top-{top_k} Retrieval Results")
         if gt:
             hit_rank = next((r+1 for r, (iid, _) in enumerate(results) if iid == gt), None)
             if hit_rank:
-                st.success(f"✓ Ground truth **{gt}** ditemukan di Rank #{hit_rank}")
+                st.success(f"✓ Ground truth **{gt}** found at rank #{hit_rank}")
             else:
-                st.info(f"Ground truth **{gt}** tidak masuk Top-{top_k}")
+                st.info(f"Ground truth **{gt}** is not in the Top-{top_k}")
 
-        # ── Sketsa + hasil berdampingan ──────────────────────────────────────
+        # ── Sketch and results side by side ──────────────────────────────────────
         col_sketch, col_arrow, col_results = st.columns([1, 0.15, top_k])
 
         with col_sketch:
-            st.markdown("**Input Kueri**")
-            st.image(st.session_state.sketch_img, use_container_width=True, caption="Sketsa")
+            st.markdown("**Query Input**")
+            st.image(st.session_state.sketch_img, use_container_width=True, caption="Sketch")
             st.caption(f"_{active_text[:120]}{'...' if len(active_text) > 120 else ''}_")
 
         with col_arrow:
@@ -198,7 +198,7 @@ if run_btn:
                         unsafe_allow_html=True)
 
         with col_results:
-            st.markdown("**Hasil Retrieval**")
+            st.markdown("**Retrieval Results**")
             result_cols = st.columns(min(top_k, 5))
             for rank, (img_id, score) in enumerate(results):
                 col = result_cols[rank % 5]
@@ -214,7 +214,7 @@ if run_btn:
 
         # ── Bar chart similarity ─────────────────────────────────────────────
         st.markdown("---")
-        st.markdown("**Skor Kemiripan (Similarity)**")
+        st.markdown("**Similarity Scores**")
         chart_data = pd.DataFrame({
             "Rank": [f"#{r+1} {'✓' if results[r][0]==gt else ''} {results[r][0]}" for r in range(len(results))],
             "Similarity": [s for _, s in results],
@@ -223,7 +223,7 @@ if run_btn:
         st.bar_chart(chart_data.set_index("Rank"), horizontal=True, color="#4F8BF9")
 
 else:
-    st.subheader("Galeri Thangka (419 gambar)")
+    st.subheader("Thangka Gallery (419 images)")
     n_cols = 6
     rows = [gallery_ids[i:i+n_cols] for i in range(0, min(len(gallery_ids), 30), n_cols)]
     for row in rows:
@@ -233,4 +233,4 @@ else:
             if os.path.exists(img_path):
                 col.image(Image.open(img_path).convert("RGB"), use_container_width=True, caption=img_id)
     if len(gallery_ids) > 30:
-        st.caption(f"...dan {len(gallery_ids)-30} gambar lainnya")
+        st.caption(f"...and {len(gallery_ids)-30} more images")
