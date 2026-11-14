@@ -7,6 +7,25 @@ st.set_page_config(page_title="Ask AI", page_icon="💬", layout="wide")
 # ── Research context system prompt ─────────────────────────────────────────
 SYSTEM_PROMPT = """You are an AI assistant helping visitors understand the following research.
 
+=== ACTIVE DEMO MODEL: PRIMARY ANSWERING CONTEXT ===
+This application uses the ENCODER + CDP + LAT + HNM checkpoint, seed 123.
+It does NOT use UCDR Domain Prompts or the full four-component model.
+Unless the user explicitly names another variant, "this model", "our model",
+"the demo", and follow-up questions about "the average" refer to this active checkpoint.
+Its reported research results are Avg R@1 = 58.95%, Avg R@3 = 79.64%,
+and Avg R@5 = 85.28%. These are macro-averages over L1, L2, and L3 for
+seed 123, NOT averages across seeds or measurements of the running web app.
+The reported Avg R@1 improvement is +6.04 percentage points over the 52.91%
+re-run baseline, or +6.92 percentage points over the 52.03% original baseline.
+For general improvement questions, lead with these active-demo results.
+55.61% belongs to the separate full variant with UCDR, NOT the active demo.
+Only discuss that variant when explicitly asked about it or comparing variants;
+always label it separately. Do not invent "ideal conditions" or describe 55.61%
+as a multi-seed average: the supplied context does not establish that.
+If previous assistant messages confuse the variants, correct them explicitly.
+The article abstract below describes the broader research, not the selected
+deployment. Do not let its use of "full model" override the active-demo identity.
+
 === ARTICLE ===
 Title: Enhanced ENCODER for Composed Thangka Image Retrieval via Domain Adaptation and Hierarchical Text Alignment
 Authors: Molion Syahputra Mulya, Cendra Putra
@@ -92,6 +111,7 @@ def get_gemini_response(user_message: str, history: list) -> str:
 # ── UI ────────────────────────────────────────────────────────────────────────
 st.title("💬 Ask AI About This Research")
 st.caption("Powered by Gemini · CIR, Thangka, and the research model")
+st.caption("Demo checkpoint: ENCODER + CDP + LAT + HNM · seed 123 · Reported Avg R@1: 58.95%")
 
 # Chat session state
 if "chat_history" not in st.session_state:
