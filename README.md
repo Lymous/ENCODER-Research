@@ -6,6 +6,10 @@ Molion Syahputra Mulya and Cendra Putra, Universitas Negeri Surabaya (UNESA).
 
 Research article: [DOI: 10.67561/jaids.v2i1.4](https://doi.org/10.67561/jaids.v2i1.4)
 
+**Live demo: [Try ENCODER Thangka on Streamlit](https://encoder-thangka-demo.streamlit.app/)**
+
+Explore sketch-and-text image retrieval directly in your browser, with no local installation required. The demo uses the ENCODER + CDP + LAT + HNM checkpoint (seed 123). Initial loading may take a few minutes if the app is waking up.
+
 ![Research illustration](picture/1.jpeg)
 
 ## About the Research
