@@ -51,6 +51,53 @@ a57b84ad54abcfc5923f1e42cfa36303843a30a72572e49f5f033ffe5c923878
 
 ## Running the Demo
 
+### Streamlit Community Cloud
+
+The cloud entry point is `cloud/app.py`. It downloads the checkpoint and upstream
+modules automatically. It uses CPU-only PyTorch from `cloud/requirements.txt`.
+The complete checkpoint includes CLIP weights, so the cloud version skips the
+separate CLIP download. The original local entry point is still available below.
+
+The cloud version keeps all **419 gallery embeddings** searchable. It downloads
+only requested images and sketches from the dataset authors' public Google Drive,
+using `cloud/media_index.json` (838 public file links, not dataset media).
+Gallery images are resized for display after download; their cached retrieval
+embeddings are unchanged. Sketches retain their original resolution for inference.
+The initial gallery shows six previews to reduce startup downloads. Concurrent
+inference calls are serialized to limit peak memory usage.
+Sketch uploads are limited to 10 MB per file.
+
+To deploy from your Streamlit account:
+
+1. Open [Streamlit Community Cloud](https://share.streamlit.io/) and select **Create app**.
+2. Select repository `Lymous/ENCODER-Research`, branch `main`.
+3. Set the main file path to **`cloud/app.py`**.
+4. In advanced settings, select **Python 3.11**.
+5. Optionally add `GEMINI_API_KEY` and `GEMINI_MODEL` in Secrets for Ask AI.
+6. Deploy. The first startup downloads about 606 MiB of model weights and may take several minutes.
+
+Google Drive download quotas or connectivity can temporarily prevent media from
+loading. Missing images show a retry warning rather than being replaced by invented
+results. Assets are cached on the instance and may need downloading again after a
+reboot. Actual hosting resource limits and availability must be checked during
+deployment; successful local testing alone does not establish a live deployment.
+
+Verified locally in a fresh Python 3.11 environment installed from
+`cloud/requirements.txt`: dependency checks, cloud navigation, public Drive media
+downloads, and a real CPU retrieval query passed. Peak process RSS for that test
+was 1,691,656 KiB (about 1.61 GiB), measured with `/usr/bin/time -v`. This is a
+single-session local measurement, not a guarantee of hosting memory use or
+multi-user capacity. Model weights already present locally were reused in the test.
+
+To test the cloud entry point locally in a separate Python 3.11 environment:
+
+```bash
+python -m pip install -r cloud/requirements.txt
+python -m streamlit run cloud/app.py
+```
+
+### Local Installation
+
 Use **Python 3.11** in a new environment to avoid changing an existing research environment. CPU inference is supported; an NVIDIA GPU with CUDA can accelerate inference. For Linux/WSL:
 
 ```bash
@@ -94,7 +141,7 @@ Setup pins ENCODER to commit `29a2a31d6a56f677bf450c3be7cdaef423fb7018` and CIRT
 
 Demo inference applies the sketch adapter and `[L1]`/`[L2]`/`[L3]` tags. The checkpoint does not contain `backbone.binding_decoder.learnable_relation`, because of how the upstream constructor moved that tensor to CUDA. The demo initializes it deterministically with seed 123 and rejects other weight mismatches. Successful demo execution does not guarantee reproduction of the reported 58.95% evaluation result. Gallery embeddings are loaded from the supplied cache rather than recomputed at startup.
 
-Local verification: setup downloaded upstream code and metadata; weight checksums passed; all 419 gallery images and 419 test sketches were available; one CPU query returned its target at rank 1; and interface tests passed for retrieval (CUDA), About, and Ask AI without an API key. Tests used the existing research Python environment. A fresh environment installation and live Gemini responses have not been tested. Existing dataset media and weights were reused during testing.
+Local verification: setup downloaded upstream code and metadata; weight checksums passed; all 419 gallery images and 419 test sketches were available; one CPU query returned its target at rank 1; and interface tests passed for retrieval (CUDA), About, and Ask AI without an API key. These initial tests used the research Python environment and existing dataset media and weights. A subsequent fresh CPU-only environment test is documented in the Cloud section above. Live Gemini responses have not been tested.
 
 ### Environment Installation Sources
 

@@ -1,6 +1,7 @@
 """Download public inference dependencies; never downloads research training code."""
 import argparse
 import hashlib
+import os
 from pathlib import Path
 import shutil
 import urllib.request
@@ -50,6 +51,8 @@ def main():
         if name == 'model_try2.py':
             replacements = {
                 "clip_path = './'": "clip_path = os.environ['ENCODER_CLIP_DIR']",
+                "pretrained=os.path.join(clip_path, 'open_clip_pytorch_model.bin')":
+                    "pretrained=(None if os.environ.get('ENCODER_SKIP_CLIP') == '1' else os.path.join(clip_path, 'open_clip_pytorch_model.bin'))",
                 'nn.Parameter(torch.randn(N_p, dim, dtype=torch.float32)).cuda()':
                     'nn.Parameter(torch.randn(N_p, dim, dtype=torch.float32))',
                 'self.learnable_relation[:, :].unsqueeze(0).cuda()':
@@ -72,6 +75,9 @@ def main():
          'https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/resolve/main/open_clip_pytorch_model.bin', CLIP_SHA),
     ]
     for relative, url, sha in assets:
+        # The complete research checkpoint already includes all CLIP weights.
+        if relative.startswith('ENCODER_repo/') and os.environ.get('ENCODER_SKIP_CLIP') == '1':
+            continue
         destination = ROOT / relative
         if args.assets_from and not destination.exists():
             local = args.assets_from / relative

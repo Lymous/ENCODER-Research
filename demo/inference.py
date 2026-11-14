@@ -3,12 +3,14 @@ import os
 from pathlib import Path
 import sys
 import warnings
+import threading
 
 import numpy as np
 import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_DIR = Path(os.environ.get('CIRTHAN_DIR', ROOT / 'CIRThan')).resolve()
+_INFERENCE_LOCK = threading.Lock()
 
 
 def load_model(device_name=None):
@@ -65,7 +67,7 @@ def retrieve(image, text, top_k, model, preprocess, device, gallery, ids, level=
     if level not in (1, 2, 3):
         raise ValueError('Level must be 1, 2 or 3.')
     query = f'[L{level}] {text.strip()}'
-    with torch.inference_mode():
+    with _INFERENCE_LOCK, torch.inference_mode():
         embedding = model.extract_retrieval_compose(
             preprocess(image).unsqueeze(0).to(device), [query])
     scores = (embedding.cpu().numpy() @ gallery.T).squeeze(0)

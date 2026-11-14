@@ -11,6 +11,7 @@ import streamlit as st
 import pandas as pd
 from PIL import Image
 from inference import DATASET_DIR as DATA_PATH, load_model as load_inference_model, retrieve
+from media import ensure_media
 
 ROOT        = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEMO_DIR    = os.path.dirname(os.path.abspath(__file__))
@@ -18,6 +19,14 @@ ENCODER_DIR = os.path.join(ROOT, 'ENCODER_repo_new')
 DATASET_DIR = str(DATA_PATH)
 CHECKPOINT  = os.path.join(ROOT, 'results', 'enhanced_best 123.pt')
 CACHE_DIR   = os.path.join(DEMO_DIR, 'gallery_cache')
+
+
+def media_path(path):
+    try:
+        return ensure_media(path, DATASET_DIR)
+    except Exception:
+        st.warning("The dataset host is temporarily unavailable. Please try again later.")
+        return path
 
 sys.path.insert(0, ENCODER_DIR)
 
@@ -57,7 +66,7 @@ def load_test_samples():
 # ── Load model ───────────────────────────────────────────────────────────────
 @st.cache_resource
 def load_model():
-    return load_inference_model()
+    return load_inference_model('cpu' if os.environ.get('ENCODER_CLOUD') == '1' else None)
 
 
 # ── Session state defaults ───────────────────────────────────────────────────
@@ -89,6 +98,7 @@ with st.sidebar:
         sample = random.choice(test_samples)
         sketch_num  = sample['sketch_id'].replace('sketch', '')
         sketch_path = os.path.join(DATASET_DIR, 'sketch', f"{sketch_num}.png")
+        sketch_path = media_path(sketch_path)
         if os.path.exists(sketch_path):
             st.session_state.sketch_img   = Image.open(sketch_path).convert('RGB')
             st.session_state.gt_id        = sample['thangka_id']
@@ -203,6 +213,8 @@ if run_btn:
             for rank, (img_id, score) in enumerate(results):
                 col = result_cols[rank % 5]
                 img_path = id_to_path.get(img_id, '')
+                if img_path:
+                    img_path = media_path(img_path)
                 is_gt = (img_id == gt)
                 with col:
                     if os.path.exists(img_path):
@@ -225,12 +237,15 @@ if run_btn:
 else:
     st.subheader("Thangka Gallery (419 images)")
     n_cols = 6
-    rows = [gallery_ids[i:i+n_cols] for i in range(0, min(len(gallery_ids), 30), n_cols)]
+    gallery_limit = 6 if os.environ.get('ENCODER_CLOUD') == '1' else 30
+    rows = [gallery_ids[i:i+n_cols] for i in range(0, min(len(gallery_ids), gallery_limit), n_cols)]
     for row in rows:
         cols = st.columns(n_cols)
         for col, img_id in zip(cols, row):
             img_path = id_to_path.get(img_id, '')
+            if img_path:
+                img_path = media_path(img_path)
             if os.path.exists(img_path):
                 col.image(Image.open(img_path).convert("RGB"), use_container_width=True, caption=img_id)
-    if len(gallery_ids) > 30:
-        st.caption(f"...and {len(gallery_ids)-30} more images")
+    if len(gallery_ids) > gallery_limit:
+        st.caption(f"...and {len(gallery_ids)-gallery_limit} more images")
